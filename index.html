@@ -736,6 +736,10 @@
         let isAnimating = false;
         let isOpen = false;
 
+        function scrollToTopOnOpen() {
+            letter.scrollTo({ top: 0, behavior: "auto" });
+        }
+
         function createRoses() {
             const introSymbols = [
                 { icon: "&#x1F339;", sizeMin: 1.1, sizeRange: 1.9 }, // rose
@@ -790,7 +794,7 @@
         function openLetter() {
             if (isAnimating || isOpen) return;
             isAnimating = true;
-            letter.scrollTop = 0;
+            scrollToTopOnOpen();
             instruction.classList.add("hidden");
             envelope.classList.add("open");
 
@@ -799,7 +803,8 @@
                 overlay.classList.add("active");
                 overlay.setAttribute("aria-hidden", "false");
                 letter.classList.add("floating");
-                letter.scrollTop = 0;
+                scrollToTopOnOpen();
+                window.setTimeout(scrollToTopOnOpen, 120);
                 envelope.setAttribute("aria-expanded", "true");
                 isAnimating = false;
                 isOpen = true;
