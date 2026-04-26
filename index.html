@@ -521,6 +521,8 @@
             justify-content: flex-start;
             align-items: stretch;
             padding: clamp(18px, 4.5vw, 28px);
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
         }
 
         .letter.floating .letter-preview {
@@ -611,6 +613,26 @@
 
         .envelope-wrapper.open .wax-seal {
             opacity: 0;
+        }
+
+        @media (max-width: 640px) {
+            .letter.floating {
+                width: 94vw;
+                min-height: 0;
+                height: min(86vh, 620px);
+                max-height: 86vh;
+                transform: translate(-50%, -50%) scale(1);
+                padding: 16px 14px 18px;
+            }
+
+            .letter-full-message {
+                font-size: clamp(0.9rem, 3.8vw, 1rem);
+                line-height: 1.62;
+            }
+
+            .overlay {
+                backdrop-filter: blur(1px);
+            }
         }
 
         @media (max-width: 360px) {
@@ -768,6 +790,7 @@
         function openLetter() {
             if (isAnimating || isOpen) return;
             isAnimating = true;
+            letter.scrollTop = 0;
             instruction.classList.add("hidden");
             envelope.classList.add("open");
 
@@ -776,6 +799,7 @@
                 overlay.classList.add("active");
                 overlay.setAttribute("aria-hidden", "false");
                 letter.classList.add("floating");
+                letter.scrollTop = 0;
                 envelope.setAttribute("aria-expanded", "true");
                 isAnimating = false;
                 isOpen = true;
