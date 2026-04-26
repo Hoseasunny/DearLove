@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Letter Animation</title>
+    <style>
+        :root {
+            --bg-1: #ffc5bf;
+            --bg-2: #ffe0ef;
+            --bg-3: #ffd8c7;
+            --paper-1: #fff8f0;
+            --paper-2: #fff1e8;
+            --ink: #4f3a31;
+            --accent: #c44569;
+            --overlay: rgba(50, 20, 24, 0.34);
+            --env-back-1: #ffd8e8;
+            --env-back-2: #f6b7cf;
+            --env-mid-1: #f8c4da;
+            --env-mid-2: #e89fbe;
+            --env-front-1: #e59abb;
+            --env-front-2: #d883aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            background: radial-gradient(circle at 15% 10%, #fff6f2 0%, transparent 32%),
+                radial-gradient(circle at 85% 90%, #fff9fb 0%, transparent 30%),
+                linear-gradient(145deg, var(--bg-1) 0%, var(--bg-2) 52%, var(--bg-3) 100%);
+            font-family: "Georgia", "Times New Roman", serif;
+            overflow: hidden;
+            position: relative;
+            color: var(--ink);
+        }
+
+        .main-scene {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.35s ease;
+        }
+
+        .main-scene.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .intro-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 45;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: radial-gradient(circle at 20% 20%, #ffe3e3 0%, transparent 30%),
+                radial-gradient(circle at 80% 80%, #ffd4d4 0%, transparent 35%),
+                linear-gradient(135deg, #b70e22 0%, #7a0012 50%, #5a000d 100%);
+        }
+
+        .intro-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 1.35s ease, visibility 0s linear 1.35s;
+        }
+
+        .intro-roses {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .rose-particle {
+            position: absolute;
+            color: rgba(255, 245, 245, 0.92);
+            animation: rose-drift 8s linear infinite;
+            will-change: transform;
+        }
+
+        @keyframes rose-drift {
+            0% {
+                transform: translateY(104vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-14vh) rotate(360deg);
+            }
+        }
+
+        .intro-card {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: #fff7f7;
+            padding: 1.2rem;
+            width: min(92vw, 430px);
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+            background-color: #c4456979;
+            border-radius: 20px;
+        }
+
+        .intro-title {
+            font-size: clamp(2rem, 7vw, 4.1rem);
+            line-height: 1.05;
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.02em;
+            opacity: 0;
+            transform: translateY(46px);
+        }
+
+        .intro-subtitle {
+            font-size: clamp(1rem, 3vw, 1.45rem);
+            margin-bottom: 1.2rem;
+            opacity: 0;
+            transform: translateY(46px);
+        }
+
+        .intro-open {
+            border: 0;
+            border-radius: 999px;
+            padding: 0.7rem 1.2rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            color: #ffffff;
+            background: #fd0277;
+            cursor: pointer;
+            transition: transform 0.25s ease, background 0.25s ease;
+            opacity: 0;
+            transform: translateY(46px);
+            pointer-events: none;
+        }
+
+        .intro-open:hover {
+            transform: translateY(-2px);
+            background: #ffd5db;
+            color: #fd0277;
+        }
+
+        .intro-open:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 3px;
+        }
+
+        .intro-screen.ready .intro-title {
+            animation: intro-rise 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+        }
+
+        .intro-screen.ready .intro-subtitle {
+            animation: intro-rise 1.8s cubic-bezier(0.16, 1, 0.3, 1) 2.05s forwards;
+        }
+
+        .intro-screen.ready .intro-open {
+            animation:
+                intro-rise 1.8s cubic-bezier(0.16, 1, 0.3, 1) 3.75s forwards,
+                intro-button-breathe 2.4s ease-in-out 5.65s infinite;
+            pointer-events: auto;
+        }
+
+        @keyframes intro-rise {
+            from {
+                opacity: 0;
+                transform: translateY(46px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes intro-button-breathe {
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 0 0 rgba(255, 210, 220, 0);
+            }
+            50% {
+                transform: translateY(-2px) scale(1.03);
+                box-shadow: 0 0 0 10px rgba(255, 210, 220, 0.18);
+            }
+        }
+
+        .bg-hearts {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .heart-particle {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.52);
+            font-size: 1.25rem;
+            animation: float-up 8s ease-in infinite;
+            will-change: transform, opacity;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(105vh) rotate(0deg) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.9;
+            }
+            90% {
+                opacity: 0.9;
+            }
+            100% {
+                transform: translateY(-12vh) rotate(360deg) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .instruction {
+            color: #7f4a36;
+            font-size: clamp(0.95rem, 4vw, 1.12rem);
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 6px rgba(255, 255, 255, 0.65);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+            z-index: 2;
+            letter-spacing: 0.02em;
+            text-align: center;
+        }
+
+        .instruction.hidden {
+            opacity: 0;
+            transform: translateY(-16px);
+            pointer-events: none;
+        }
+
+        .envelope-wrapper {
+            --env-width: min(88vw, 340px);
+            position: relative;
+            width: var(--env-width);
+            aspect-ratio: 320 / 220;
+            cursor: pointer;
+            z-index: 2;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            animation: envelope-bob 2.6s ease-in-out infinite;
+            transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+            outline: none;
+        }
+
+        .envelope-wrapper:hover {
+            transform: translateY(-8px) scale(1.02);
+        }
+
+        .envelope-wrapper:focus-visible {
+            box-shadow: 0 0 0 4px rgba(196, 69, 105, 0.25);
+            border-radius: 8px;
+        }
+
+        .envelope-wrapper.open,
+        .envelope-wrapper.faded {
+            animation: none;
+        }
+
+        /* Keep the floating letter above the dark overlay layer. */
+        .envelope-wrapper.open {
+            z-index: 30;
+        }
+
+        @keyframes envelope-bob {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        .envelope-body {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 72.73%;
+            background: linear-gradient(180deg, var(--env-back-1) 0%, var(--env-back-2) 100%);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 14px 30px rgba(78, 37, 24, 0.2);
+            z-index: 1;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .envelope-wrapper:hover .envelope-body {
+            box-shadow: 0 20px 42px rgba(78, 37, 24, 0.27);
+        }
+
+        .envelope-left,
+        .envelope-right {
+            position: absolute;
+            bottom: 0;
+            width: 50%;
+            height: 72.73%;
+            z-index: 2;
+        }
+
+        .envelope-left {
+            left: 0;
+            background: linear-gradient(135deg, var(--env-mid-1) 0%, var(--env-mid-2) 100%);
+            clip-path: polygon(0 0, 100% 100%, 0 100%);
+        }
+
+        .envelope-right {
+            right: 0;
+            background: linear-gradient(225deg, var(--env-mid-1) 0%, var(--env-mid-2) 100%);
+            clip-path: polygon(100% 0, 100% 100%, 0 100%);
+        }
+
+        .envelope-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(0deg, var(--env-front-1) 0%, var(--env-front-2) 100%);
+            clip-path: polygon(0 100%, 50% 0, 100% 100%);
+            z-index: 3;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 27.27%;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(180deg, var(--env-back-1) 0%, var(--env-back-2) 100%);
+            clip-path: polygon(0 0, 50% 100%, 100% 0);
+            transform-origin: top;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 4;
+            backface-visibility: hidden;
+        }
+
+        .envelope-wrapper.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 0;
+        }
+
+        .letter {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 87.5%;
+            height: 66%;
+            background: linear-gradient(180deg, var(--paper-1) 0%, var(--paper-2) 100%);
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.09);
+            z-index: 2;
+            transition: transform 0.9s cubic-bezier(0.34, 1.56, 0.64, 1), top 0.9s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease, width 0.4s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(12px, 3.2vw, 18px);
+            overflow: hidden;
+        }
+
+        .letter::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border: 1px solid rgba(200, 100, 100, 0.22);
+            border-radius: 5px;
+            pointer-events: none;
+        }
+
+        .letter-preview,
+        .letter-full {
+            position: relative;
+            z-index: 1;
+        }
+
+        .letter-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .letter-preview-icon {
+            font-size: clamp(1.8rem, 8vw, 2.4rem);
+            animation: gentle-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes gentle-pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.06);
+            }
+        }
+
+        .letter-preview-text {
+            color: #ab7667;
+            font-size: clamp(0.82rem, 3.5vw, 0.98rem);
+            font-style: italic;
+            text-align: center;
+        }
+
+        .letter-full {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(10px);
+            gap: 0.8rem;
+            transition: opacity 0.45s ease 0.2s, transform 0.45s ease 0.2s;
+            text-align: center;
+        }
+
+        .letter-full-title {
+            font-size: clamp(1.3rem, 4vw, 1.65rem);
+            color: var(--accent);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .letter-full-message {
+            font-size: clamp(0.95rem, 2.6vw, 1rem);
+            line-height: 1.7;
+            color: #5b4a42;
+        }
+
+        .letter-full-heart {
+            font-size: 1.85rem;
+            animation: heartbeat 1.2s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.14);
+            }
+            50% {
+                transform: scale(1);
+            }
+            75% {
+                transform: scale(1.09);
+            }
+        }
+
+        .letter-close {
+            margin-top: 0.4rem;
+            border: 0;
+            border-radius: 999px;
+            padding: 0.45rem 0.85rem;
+            background: #f4d4dd;
+            color: #73454f;
+            font-size: 0.85rem;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            display: none;
+            transition: background 0.25s ease, transform 0.25s ease;
+        }
+
+        .letter-close:hover {
+            background: #f0c4d2;
+            transform: translateY(-1px);
+        }
+
+        .letter-close:focus-visible {
+            outline: 2px solid #b15a76;
+            outline-offset: 2px;
+        }
+
+        .envelope-wrapper.open .letter:not(.floating) {
+            top: -45%;
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.16);
+        }
+
+        .letter.floating {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1.1);
+            width: min(92vw, 460px);
+            min-height: min(72vh, 420px);
+            max-height: 82vh;
+            z-index: 20;
+            box-shadow: 0 26px 65px rgba(0, 0, 0, 0.25);
+            overflow: auto;
+            justify-content: flex-start;
+            align-items: stretch;
+            padding: clamp(18px, 4.5vw, 28px);
+        }
+
+        .letter.floating .letter-preview {
+            display: none;
+        }
+
+        .letter.floating .letter-full {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+            animation: reveal-in 0.45s ease;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        .letter.floating .letter-close {
+            display: inline-block;
+        }
+
+        @keyframes reveal-in {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            z-index: 15;
+            cursor: pointer;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .envelope-wrapper.faded {
+            pointer-events: auto;
+        }
+
+        /* Fade envelope pieces while keeping the floating letter visible. */
+        .envelope-wrapper.faded .envelope-flap,
+        .envelope-wrapper.faded .envelope-left,
+        .envelope-wrapper.faded .envelope-right,
+        .envelope-wrapper.faded .envelope-bottom,
+        .envelope-wrapper.faded .envelope-body,
+        .envelope-wrapper.faded .wax-seal {
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+            pointer-events: none;
+        }
+
+        .envelope-wrapper.faded .letter {
+            pointer-events: auto;
+        }
+
+        .wax-seal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 42px;
+            height: 42px;
+            background: radial-gradient(circle, #c44569 0%, #a03050 100%);
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 2px 9px rgba(0, 0, 0, 0.24);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .envelope-wrapper.open .wax-seal {
+            opacity: 0;
+        }
+
+        @media (max-width: 360px) {
+            .instruction {
+                margin-bottom: 0.8rem;
+                font-size: 0.88rem;
+            }
+
+            .letter {
+                height: 64%;
+            }
+
+            .intro-open {
+                padding: 0.62rem 1rem;
+                font-size: 0.84rem;
+            }
+
+            .letter-full-message {
+                line-height: 1.58;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="intro-screen" id="introScreen" aria-label="Welcome">
+        <div class="intro-roses" id="introRoses" aria-hidden="true"></div>
+        <div class="intro-card">
+            <h1 class="intro-title">Hi babe</h1>
+            <p class="intro-subtitle">I have a letter for you.</p>
+            <button class="intro-open" id="introOpen" type="button">Open</button>
+        </div>
+    </section>
+
+    <main class="main-scene" id="mainScene">
+        <div class="bg-hearts" id="bgHearts" aria-hidden="true"></div>
+
+        <p class="instruction" id="instruction">Click on the envelop to open your letter</p>
+
+        <div class="envelope-wrapper" id="envelope" role="button" tabindex="0" aria-label="Open love letter" aria-expanded="false">
+            <div class="envelope-flap"></div>
+
+            <article class="letter" id="letter" aria-live="polite">
+                <div class="letter-preview" id="letterPreview">
+                    <div class="letter-preview-icon">&#x1F48C;</div>
+                    <div class="letter-preview-text">A heartfelt note is waiting for you...</div>
+                </div>
+
+                <div class="letter-full" id="letterFull">
+                    <h1 class="letter-full-title">Hey my love,</h1>
+                    <p class="letter-full-message">
+                        I've been thinking about you a lot, and I need to say this from my heart. I'm really sorry I missed wishing you a happy birthday. I know you said it's okay, but I also know you well enough to feel that it probably hurt you and that honestly hurts me too.
+                        <br><br>
+                        Your birthday isn't just another day to me. It's the day someone incredibly special came into this world, someone who brings so much light into my life. And I hate that I let that moment pass without celebrating you the way you truly deserve.
+                        <br><br>
+                        If I could rewind time, I would. I would make sure you woke up to my message, full of love, reminding you how deeply you matter to me. Since I can't change that moment, let me make this one count...
+                        <br><br>
+                        Happy belated birthday, my love &#x2764;&#xFE0F;
+                        <br>
+                        You are beautiful, kind, and irreplaceable. Being with you is something I never take for granted, even if I made a mistake that made it seem that way. I promise to do better, not just in words, but in how I show up for you.
+                        <br><br>
+                        I hope you can forgive me, and I hope I can make it up to you in a way that makes you smile again... the way you always make me smile.
+                        <br><br>
+                        Always yours.
+                    </p>
+                    <div class="letter-full-heart">&#x1F48C;</div>
+                    <button class="letter-close" id="closeLetter" type="button" aria-label="Close letter">Close</button>
+                </div>
+            </article>
+
+            <div class="envelope-left"></div>
+            <div class="envelope-right"></div>
+            <div class="envelope-bottom"></div>
+            <div class="envelope-body"></div>
+            <div class="wax-seal">&#x1F495;</div>
+        </div>
+
+        <div class="overlay" id="overlay" aria-hidden="true"></div>
+    </main>
+
+    <script>
+        const introScreen = document.getElementById("introScreen");
+        const introRoses = document.getElementById("introRoses");
+        const introOpen = document.getElementById("introOpen");
+        const mainScene = document.getElementById("mainScene");
+        const envelope = document.getElementById("envelope");
+        const letter = document.getElementById("letter");
+        const overlay = document.getElementById("overlay");
+        const instruction = document.getElementById("instruction");
+        const bgHearts = document.getElementById("bgHearts");
+        const closeLetterButton = document.getElementById("closeLetter");
+
+        let isAnimating = false;
+        let isOpen = false;
+
+        function createRoses() {
+            const introSymbols = [
+                { icon: "&#x1F339;", sizeMin: 1.1, sizeRange: 1.9 }, // rose
+                { icon: "&#x1F338;", sizeMin: 1.0, sizeRange: 1.6 }, // cherry blossom
+                { icon: "&#x1F33A;", sizeMin: 1.0, sizeRange: 1.7 }, // hibiscus
+                //{ icon: "&#x1F33B;", sizeMin: 0.9, sizeRange: 1.3 }, // petal-like accent
+                { icon: "&#x273F;", sizeMin: 0.75, sizeRange: 1.1 }  // petal glyph
+            ];
+            const introColors = ["#ffd9df", "#ffc3d4", "#ffadbf", "#ffa0b5", "#ff8aa3", "#ff7f9a"];
+            for (let i = 0; i < 70; i += 1) {
+                const rose = document.createElement("div");
+                rose.className = "rose-particle";
+                const symbol = introSymbols[Math.floor(Math.random() * introSymbols.length)];
+                rose.innerHTML = symbol.icon;
+                rose.style.left = Math.random() * 100 + "%";
+                rose.style.animationDelay = Math.random() * 8 + "s";
+                rose.style.animationDuration = 5 + Math.random() * 6 + "s";
+                rose.style.fontSize = symbol.sizeMin + Math.random() * symbol.sizeRange + "rem";
+                rose.style.opacity = String(0.5 + Math.random() * 0.5);
+                rose.style.color = introColors[Math.floor(Math.random() * introColors.length)];
+                introRoses.appendChild(rose);
+            }
+        }
+
+        function revealMainScene() {
+            mainScene.classList.add("active");
+            introScreen.classList.add("hidden");
+            envelope.focus();
+        }
+
+        function createHearts() {
+            const heartSymbols = [
+                "\u2764\uFE0F",
+                "\uD83D\uDC96",
+                "\uD83D\uDC95",
+                "\uD83D\uDC97",
+                "\uD83D\uDC9D",
+                "\uD83D\uDC98"
+            ];
+            for (let i = 0; i < 36; i += 1) {
+                const heart = document.createElement("div");
+                heart.className = "heart-particle";
+                heart.textContent = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+                heart.style.left = Math.random() * 100 + "%";
+                heart.style.animationDelay = Math.random() * 8 + "s";
+                heart.style.animationDuration = 5 + Math.random() * 4 + "s";
+                heart.style.fontSize = 0.9 + Math.random() * 1.3 + "rem";
+                bgHearts.appendChild(heart);
+            }
+        }
+
+        function openLetter() {
+            if (isAnimating || isOpen) return;
+            isAnimating = true;
+            instruction.classList.add("hidden");
+            envelope.classList.add("open");
+
+            window.setTimeout(() => {
+                envelope.classList.add("faded");
+                overlay.classList.add("active");
+                overlay.setAttribute("aria-hidden", "false");
+                letter.classList.add("floating");
+                envelope.setAttribute("aria-expanded", "true");
+                isAnimating = false;
+                isOpen = true;
+                closeLetterButton.focus();
+            }, 1300);
+        }
+
+        function closeLetter() {
+            if (isAnimating || !isOpen) return;
+            isAnimating = true;
+            letter.classList.remove("floating");
+            overlay.classList.remove("active");
+            overlay.setAttribute("aria-hidden", "true");
+            envelope.setAttribute("aria-expanded", "false");
+
+            window.setTimeout(() => {
+                envelope.classList.remove("faded");
+            }, 260);
+
+            window.setTimeout(() => {
+                envelope.classList.remove("open");
+                instruction.classList.remove("hidden");
+                isAnimating = false;
+                isOpen = false;
+                envelope.focus();
+            }, 760);
+        }
+
+        createRoses();
+        createHearts();
+        requestAnimationFrame(() => {
+            introScreen.classList.add("ready");
+        });
+
+        introOpen.addEventListener("click", revealMainScene);
+
+        envelope.addEventListener("click", openLetter);
+
+        overlay.addEventListener("click", closeLetter);
+        closeLetterButton.addEventListener("click", closeLetter);
+
+        letter.addEventListener("click", (event) => {
+            event.stopPropagation();
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (!mainScene.classList.contains("active")) {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    revealMainScene();
+                }
+                return;
+            }
+            if (event.key === "Escape" && isOpen) {
+                closeLetter();
+            }
+            if ((event.key === "Enter" || event.key === " ") && document.activeElement === envelope && !isOpen) {
+                event.preventDefault();
+                openLetter();
+            }
+        });
+    </script>
+</body>
+</html>
